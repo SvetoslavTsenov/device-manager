@@ -1,7 +1,7 @@
 {
   "name": "device-manager",
-  "version": "1.0.0",
-  "description": "Boot and kill simulators and emulators",
+  "version": "0.0.1",
+  "description": "Manage simulators, emulators and devices",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,5 +23,6 @@
   "devDependencies": {
     "@types/node": "^8.0.31",
     "typescript": "^2.5.3"
-  }
+  },
+  "dependencies": {}
 }
