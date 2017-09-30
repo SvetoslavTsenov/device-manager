@@ -1,7 +1,7 @@
 import * as child_process from "child_process";
 import { waitForOutput, executeCommand } from "./utils";
 import { resolve } from "path";
-import { IDevice } from "./device";
+import { IDevice, Device } from "./device";
 import { Status } from "./status";
 
 export class AndroidManager {
@@ -166,57 +166,8 @@ export class AndroidManager {
 }
 
 
-export class Emulator implements IDevice {
-    private _startedAt?: number;
-
-    constructor(private _name: string, private _apiLevel, private _type, private _token?: string, private _status?: string, private _procPid?) {
-    }
-
-    set apiLevel(api) {
-        this._apiLevel = api;
-    }
-
-    get apiLevel() {
-        return this._apiLevel;
-    }
-
-    set token(token) {
-        this._token = token;
-    }
-
-    get token() {
-        return this._token;
-    }
-
-    get type() {
-        return this._type;
-    }
-
-    set procPid(proc) {
-        this._procPid = proc;
-    }
-
-    get procPid() {
-        return this._procPid;
-    }
-
-    get status() {
-        return this._status;
-    }
-
-    set status(status) {
-        this._status = status;
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get startedAt() {
-        return this._startedAt;
-    }
-
-    set startedAt(startedAt) {
-        this._startedAt = startedAt;
+export class Emulator extends Device {
+    constructor(name: string, apiLevel, type, token?: string, _status?: string, _procPid?) {
+        super(name, apiLevel, token, _status, _procPid);
     }
 }

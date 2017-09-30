@@ -1,7 +1,7 @@
 import { IDevice } from "./lib/device";
 export { AndroidManager, Emulator } from "./lib/android-manager";
 export { IOSManager, Simulator } from "./lib/ios-manager";
-export { IDevice } from "./lib/device";
+export { IDevice, Device } from "./lib/device";
 export { Status } from "./lib/status";
 export declare function getAndroidDevices(): void;
 export declare function getIOSDevices(): void;

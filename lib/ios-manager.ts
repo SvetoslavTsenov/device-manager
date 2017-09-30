@@ -1,7 +1,7 @@
 import * as child_process from "child_process";
 import { waitForOutput, executeCommand } from "./utils";
 import { Status } from "./status";
-import { IDevice } from "./device";
+import { IDevice, Device } from "./device";
 
 export class IOSManager {
 
@@ -66,7 +66,7 @@ export class IOSManager {
 
     private static findSimulatorByParameter(...args) {
         const simulators = executeCommand(IOSManager.XCRUNLISTDEVICES_COMMAND).split("\n");
-        const devices: Array<IDevice> = new Array<IDevice>();
+        const devices: Map<string, Device> = new Map<string, Device>();
 
         simulators.forEach((sim) => {
             let shouldAdd = true;
@@ -81,7 +81,7 @@ export class IOSManager {
             if (shouldAdd) {
                 let result = IOSManager.parseSimulator(sim);
                 if (result) {
-                    devices.push(IOSManager.parseSimulator(sim));
+                    devices.set(result.name, result);
                 }
             }
         });
@@ -106,7 +106,7 @@ export class IOSManager {
 
     // Should find a better way
     private static waitUntilSimulatorBoot(udid, timeout) {
-        let booted = IOSManager.findSimulatorByParameter(udid, IOSManager.BOOTED).length > 0;
+        let booted = IOSManager.findSimulatorByParameter(udid, IOSManager.BOOTED).size > 0;
         const startTime = new Date().getTime();
         let currentTime = new Date().getTime();
 
@@ -114,7 +114,7 @@ export class IOSManager {
 
         while ((currentTime - startTime) < timeout && !booted) {
             currentTime = new Date().getTime();
-            booted = IOSManager.findSimulatorByParameter(udid, IOSManager.BOOTED).length > 0;
+            booted = IOSManager.findSimulatorByParameter(udid, IOSManager.BOOTED).size > 0;
         }
 
         if (!booted) {
@@ -126,41 +126,8 @@ export class IOSManager {
     }
 }
 
-export class Simulator implements IDevice {
-    private _startedAt?: number;
-
-    constructor(private _token: string, private _name: string, private _status: string, private _type, private _procPid?) {
-    }
-
-    get token() {
-        return this._token;
-    }
-
-    get type() {
-        return this._type;
-    }
-
-    get procPid() {
-        return this._procPid;
-    }
-
-    get status() {
-        return this._status;
-    }
-
-    set status(status) {
-        this._status = status;
-    }
-
-    get name() {
-        return this._name;
-    }
-
-    get startedAt() {
-        return this._startedAt;
-    }
-
-    set startedAt(startedAt) {
-        this._startedAt = startedAt;
+export class Simulator extends Device {
+    constructor(token: string, name: string, status: string, type, procPid?: number) {
+        super(name, undefined, type, token, status, procPid);
     }
 }

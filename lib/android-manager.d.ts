@@ -1,4 +1,4 @@
-import { IDevice } from "./device";
+import { IDevice, Device } from "./device";
 export declare class AndroidManager {
     private static ANDROID_HOME;
     private static EMULATOR;
@@ -26,20 +26,6 @@ export declare class AndroidManager {
     private static parseEmulators();
     private static parseAvdAsEmulator(args);
 }
-export declare class Emulator implements IDevice {
-    private _name;
-    private _apiLevel;
-    private _type;
-    private _token;
-    private _status;
-    private _procPid;
-    private _startedAt?;
-    constructor(_name: string, _apiLevel: any, _type: any, _token?: string, _status?: string, _procPid?: any);
-    apiLevel: any;
-    token: string;
-    readonly type: any;
-    procPid: any;
-    status: string;
-    readonly name: string;
-    startedAt: number;
+export declare class Emulator extends Device {
+    constructor(name: string, apiLevel: any, type: any, token?: string, _status?: string, _procPid?: any);
 }
