@@ -16,22 +16,19 @@ export class AndroidManager {
 
     public static getAllDevices() {
         const emulators = AndroidManager.parseEmulators();
+        console.log("", emulators);
 
         return emulators;
     }
 
     public static async startEmulator(emulator: IDevice, options?) {
         if (emulator.token === undefined) {
-            emulator.token = AndroidManager.emulatorId(emulator.apiLevel) || "5554";
+            emulator.token = AndroidManager.emulatorId(emulator.platformVersion) || "5554";
         }
+
         const response = await AndroidManager.startEmulatorProcess(emulator, options);
-
-        if (!response.response) {
-            emulator.status = AndroidManager.waitUntilEmulatorBoot(emulator.token, 180000) === true ? Status.FREE : Status.SHUTDOWN;
-        }
-
-        if (emulator.status === Status.FREE) {
-            emulator.startedAt = Date.now();
+        if (response.response) {
+            AndroidManager.waitUntilEmulatorBoot(emulator.token, 180000);
         }
 
         return emulator;
@@ -53,10 +50,7 @@ export class AndroidManager {
      * Still not implemented
      */
     public static killAll() {
-        const log = executeCommand("killall qemu-system-i386 ");
-        const OSASCRIPT_QUIT_QEMU_PROCESS_COMMAND = "osascript -e 'tell application \"qemu-system-i386\" to quit'";
 
-        executeCommand(OSASCRIPT_QUIT_QEMU_PROCESS_COMMAND);
     }
 
     private static waitUntilEmulatorBoot(deviceId, timeOut: number) {
@@ -68,8 +62,7 @@ export class AndroidManager {
 
         while ((currentTime - startTime) < timeOut * 1000 && !found) {
             currentTime = new Date().getTime();
-            found = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + deviceId);
-
+            found = this.checkIfEmulatorIsRunning("emulator-" + deviceId);
         }
 
         if (!found) {
@@ -78,8 +71,6 @@ export class AndroidManager {
         } else {
             console.log("Emilator is booted!");
         }
-
-        return found;
     }
 
     private static checkIfEmulatorIsRunning(token) {
@@ -97,12 +88,15 @@ export class AndroidManager {
 
     private static async startEmulatorProcess(emulator, options) {
         const process = child_process.spawn(AndroidManager.EMULATOR,
-            ["-avd ", emulator.name, "-port ", emulator.token], {
+            ["-avd ", name, "-port ", emulator.token, options || " -wipe-data"], {
                 shell: true,
                 detached: false
             });
 
-        let response = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + emulator.token);
+        let response: boolean = await waitForOutput(emulator, new RegExp(name, "i"), new RegExp("Error", "i"), 180000);
+        if (response) {
+            response = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + emulator.token);
+        }
 
         emulator.procPid = process.pid;
 
@@ -141,7 +135,7 @@ export class AndroidManager {
                 if (port !== NaN && avdInfo !== "" && avdInfo.toLowerCase().includes("ok") && avdInfo.toLowerCase().includes("connected to localhost")) {
                     for (let key of emulators.keys()) {
                         if (avdInfo.includes(key)) {
-                            emulators.get(key).status = Status.FREE;
+                            emulators.get(key).status = Status.free;
                             emulators.get(key).token = numberAsString;
                         }
                     }
@@ -153,7 +147,7 @@ export class AndroidManager {
         return emulators;
     }
 
-    private static parseAvdAsEmulator(args): Device {
+    private static parseAvdAsEmulator(args) {
         let name = "";
         let apiLevel = 6.0;
 
@@ -166,7 +160,7 @@ export class AndroidManager {
             }
         });
 
-        const emulator = new Emulator(name, apiLevel, Platform.EMULATOR, undefined, Status.SHUTDOWN);
+        const emulator = new Emulator(name, apiLevel, Platform.EMULATOR, undefined, Status.shutdown);
 
         return emulator;
     }

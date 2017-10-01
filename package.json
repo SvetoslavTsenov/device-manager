@@ -1,5 +1,5 @@
 {
-  "name": "device-manager",
+  "name": "devices-controller",
   "version": "0.0.1",
   "description": "Manage simulators, emulators and devices",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SvetoslavTsenov/device-manager.git"
+    "url": "git+https://github.com/SvetoslavTsenov/devices-controller.git"
   },
   "keywords": [
     "simulator",
@@ -17,9 +17,9 @@
   "author": "SvetoslavTsenov",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/SvetoslavTsenov/device-manager/issues"
+    "url": "https://github.com/SvetoslavTsenov/devices-controller/issues"
   },
-  "homepage": "https://github.com/SvetoslavTsenov/device-manager#readme",
+  "homepage": "https://github.com/SvetoslavTsenov/devices-controller#readme",
   "devDependencies": {
     "@types/node": "^8.0.31",
     "typescript": "^2.5.3"

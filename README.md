@@ -1,7 +1,7 @@
-# device-manager
+# devices-controller
 ## Get all available emulators, simulator and devices.
 ## Boot and kill simulators and emulators.
 ## Restart real devices
 
-`$ npm i -D device-manager`
+`$ npm i -D devices-controller`
 
