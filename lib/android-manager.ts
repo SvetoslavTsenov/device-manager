@@ -88,15 +88,12 @@ export class AndroidManager {
 
     private static async startEmulatorProcess(emulator, options) {
         const process = child_process.spawn(AndroidManager.EMULATOR,
-            ["-avd ", name, "-port ", emulator.token, options || " -wipe-data"], {
+            ["-avd ", emulator.name, "-port ", emulator.token, options || " -wipe-data"], {
                 shell: true,
                 detached: false
             });
 
-        let response: boolean = await waitForOutput(emulator, new RegExp(name, "i"), new RegExp("Error", "i"), 180000);
-        if (response) {
-            response = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + emulator.token);
-        }
+        let response = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + emulator.token);
 
         emulator.procPid = process.pid;
 
