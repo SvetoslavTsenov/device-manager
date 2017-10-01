@@ -16,7 +16,6 @@ export class AndroidManager {
 
     public static getAllDevices() {
         const emulators = AndroidManager.parseEmulators();
-        console.log("", emulators);
 
         return emulators;
     }
@@ -25,10 +24,14 @@ export class AndroidManager {
         if (emulator.token === undefined) {
             emulator.token = AndroidManager.emulatorId(emulator.apiLevel) || "5554";
         }
-
         const response = await AndroidManager.startEmulatorProcess(emulator, options);
-        if (response.response) {
-            AndroidManager.waitUntilEmulatorBoot(emulator.token, 180000);
+
+        if (!response.response) {
+            emulator.status = AndroidManager.waitUntilEmulatorBoot(emulator.token, 180000) === true ? Status.FREE : Status.SHUTDOWN;
+        }
+
+        if (emulator.status === Status.FREE) {
+            emulator.startedAt = Date.now();
         }
 
         return emulator;
@@ -50,7 +53,10 @@ export class AndroidManager {
      * Still not implemented
      */
     public static killAll() {
+        const log = executeCommand("killall qemu-system-i386 ");
+        const OSASCRIPT_QUIT_QEMU_PROCESS_COMMAND = "osascript -e 'tell application \"qemu-system-i386\" to quit'";
 
+        executeCommand(OSASCRIPT_QUIT_QEMU_PROCESS_COMMAND);
     }
 
     private static waitUntilEmulatorBoot(deviceId, timeOut: number) {
@@ -62,7 +68,7 @@ export class AndroidManager {
 
         while ((currentTime - startTime) < timeOut * 1000 && !found) {
             currentTime = new Date().getTime();
-            found = this.checkIfEmulatorIsRunning("emulator-" + deviceId);
+            found = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + deviceId);
         }
 
         if (!found) {
@@ -71,6 +77,8 @@ export class AndroidManager {
         } else {
             console.log("Emilator is booted!");
         }
+
+        return found;
     }
 
     private static checkIfEmulatorIsRunning(token) {
@@ -109,7 +117,8 @@ export class AndroidManager {
         AndroidManager._emulatorIds.set("6.0", "5564");
         AndroidManager._emulatorIds.set("7.0", "5566");
         AndroidManager._emulatorIds.set("7.1", "5568");
-        AndroidManager._emulatorIds.set("8.0", "5570");
+        AndroidManager._emulatorIds.set("7.1.1", "5570");
+        AndroidManager._emulatorIds.set("8.0", "5572");
     }
 
     private static parseEmulators() {
@@ -144,7 +153,7 @@ export class AndroidManager {
         return emulators;
     }
 
-    private static parseAvdAsEmulator(args) {
+    private static parseAvdAsEmulator(args): Device {
         let name = "";
         let apiLevel = 6.0;
 
