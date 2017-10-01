@@ -23,7 +23,7 @@ export class AndroidManager {
 
     public static async startEmulator(emulator: IDevice, options?) {
         if (emulator.token === undefined) {
-            emulator.token = AndroidManager.emulatorId(emulator.platformVersion) || "5554";
+            emulator.token = AndroidManager.emulatorId(emulator.apiLevel) || "5554";
         }
 
         const response = await AndroidManager.startEmulatorProcess(emulator, options);
@@ -135,7 +135,7 @@ export class AndroidManager {
                 if (port !== NaN && avdInfo !== "" && avdInfo.toLowerCase().includes("ok") && avdInfo.toLowerCase().includes("connected to localhost")) {
                     for (let key of emulators.keys()) {
                         if (avdInfo.includes(key)) {
-                            emulators.get(key).status = Status.free;
+                            emulators.get(key).status = Status.FREE;
                             emulators.get(key).token = numberAsString;
                         }
                     }
@@ -160,7 +160,7 @@ export class AndroidManager {
             }
         });
 
-        const emulator = new Emulator(name, apiLevel, Platform.EMULATOR, undefined, Status.shutdown);
+        const emulator = new Emulator(name, apiLevel, Platform.EMULATOR, undefined, Status.SHUTDOWN);
 
         return emulator;
     }
