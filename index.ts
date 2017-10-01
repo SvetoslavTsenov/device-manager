@@ -1,11 +1,13 @@
 import { AndroidManager, Emulator } from "./lib/android-manager";
 import { IOSManager, Simulator } from "./lib/ios-manager";
 import { IDevice } from "./lib/device";
+import { Platform } from "./lib/platform"
 
 export { AndroidManager, Emulator } from "./lib/android-manager";
 export { IOSManager, Simulator } from "./lib/ios-manager";
 export { IDevice, Device } from "./lib/device";
 export { Status } from "./lib/status";
+export { Platform } from "./lib/platform";
 
 export function getAndroidDevices() {
     AndroidManager.getAllDevices();

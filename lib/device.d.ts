@@ -1,12 +1,11 @@
-import { Status } from "./status";
 export interface IDevice {
     name: string;
     token: string;
     type: string;
-    status?: Status;
+    status?: string;
     startedAt?: number;
     procPid?: number;
-    platformVersion?: number;
+    apiLevel?: string;
 }
 export declare class Device implements IDevice {
     private _name;
@@ -16,12 +15,21 @@ export declare class Device implements IDevice {
     private _status;
     private _procPid;
     private _startedAt?;
-    constructor(_name: string, _apiLevel: any, _type: any, _token: string, _status: string, _procPid?: any);
+    constructor(_name: string, _apiLevel: string, _type: string, _token: string, _status: string, _procPid?: any);
     name: string;
-    apiLevel: any;
+    apiLevel: string;
     token: string;
-    type: any;
+    type: string;
     procPid: any;
     status: string;
     startedAt: number;
+    toJson(): {
+        name: string;
+        token: string;
+        type: string;
+        status: string;
+        startedAt: number;
+        procPid: any;
+        apiLevel: string;
+    };
 }

@@ -7,7 +7,7 @@ export declare class AndroidManager {
     private static AVD_MANAGER;
     private static LIST_AVDS;
     private static _emulatorIds;
-    static getAllDevices(): Promise<Map<string, IDevice>>;
+    static getAllDevices(): Map<string, IDevice>;
     static startEmulator(emulator: IDevice, options?: any): Promise<IDevice>;
     /**
      * Implement kill process
@@ -27,5 +27,5 @@ export declare class AndroidManager {
     private static parseAvdAsEmulator(args);
 }
 export declare class Emulator extends Device {
-    constructor(name: string, apiLevel: any, type: any, token?: string, _status?: string, _procPid?: any);
+    constructor(name: string, apiLevel: any, type: any, token?: string, status?: string, procPid?: number);
 }

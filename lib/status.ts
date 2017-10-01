@@ -1,6 +1,6 @@
 export class Status {
-    public static shutdown = "shutdown";
-    public static booted = "booted";
-    public static free = "free";
-    public static busy = "busy";
+    public static SHUTDOWN = "shutdown";
+    public static BOOTED = "booted";
+    public static FREE = "free";
+    public static BUSY = "busy";
 }

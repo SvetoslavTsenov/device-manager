@@ -4,16 +4,17 @@ export interface IDevice {
   name: string,
   token: string,
   type: string
-  status?: Status,
+  status?: string,
   startedAt?: number,
   procPid?: number,
-  platformVersion?: number
+  apiLevel?: string
 }
 
 export class Device implements IDevice {
   private _startedAt?: number;
 
-  constructor(private _name: string, private _apiLevel, private _type, private _token: string, private _status: string, private _procPid?) {
+  constructor(private _name: string, private _apiLevel: string, private _type: string, private _token: string, private _status: string, private _procPid?) {
+    this._startedAt = -1;
   }
 
   get name() {
@@ -70,5 +71,17 @@ export class Device implements IDevice {
 
   set startedAt(startedAt) {
     this._startedAt = startedAt;
+  }
+
+  public toJson() {
+    return {
+      name: this.name,
+      token: this.token,
+      type: this.type,
+      status: this.status,
+      startedAt: this.startedAt,
+      procPid: this.procPid,
+      apiLevel: this.apiLevel
+    }
   }
 }

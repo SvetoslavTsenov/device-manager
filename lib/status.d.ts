@@ -1,6 +1,6 @@
 export declare class Status {
-    static shutdown: string;
-    static booted: string;
-    static free: string;
-    static busy: string;
+    static SHUTDOWN: string;
+    static BOOTED: string;
+    static FREE: string;
+    static BUSY: string;
 }

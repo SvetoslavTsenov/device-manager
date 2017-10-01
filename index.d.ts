@@ -3,6 +3,7 @@ export { AndroidManager, Emulator } from "./lib/android-manager";
 export { IOSManager, Simulator } from "./lib/ios-manager";
 export { IDevice, Device } from "./lib/device";
 export { Status } from "./lib/status";
+export { Platform } from "./lib/platform";
 export declare function getAndroidDevices(): void;
 export declare function getIOSDevices(): void;
 export declare function startEmulator(emulator: IDevice, options?: any): void;

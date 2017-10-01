@@ -2,6 +2,7 @@ import * as child_process from "child_process";
 import { waitForOutput, executeCommand } from "./utils";
 import { Status } from "./status";
 import { IDevice, Device } from "./device";
+import { Platform } from "./platform";
 
 export class IOSManager {
 
@@ -12,7 +13,7 @@ export class IOSManager {
     private static BOOTED = "Booted";
     private static SHUTDOWN = "Shutdown";
     private static OSASCRIPT_QUIT_SIMULATOR_COMMAND = "osascript -e 'tell application \"Simulator\" to quit'";
-    private static SIMULATOR = "simulator";
+    private static SIMULATOR = Platform.SIMULATOR;
     private static IOS_DEVICE = "ios-device";
 
     public static getAllDevices() {
@@ -28,8 +29,9 @@ export class IOSManager {
         if (responce === true) {
             IOSManager.waitUntilSimulatorBoot(udid, 180000);
             simulator.type = IOSManager.SIMULATOR;
-            simulator.status = Status.free;
+            simulator.status = Status.FREE;
             simulator.procPid = process.pid;
+            simulator.startedAt = Date.now();
             console.log(`Launched simulator with name: ${simulator.name}; udid: ${simulator.token}; status: ${simulator.status}`);
             await setTimeout(function () {
 
@@ -52,14 +54,10 @@ export class IOSManager {
     }
 
     private static startSimulatorProcess(udid) {
-        console.log("before Sim process ");
-
         const simProcess = child_process.spawn(IOSManager.BOOT_DEVICE_COMMAND, [udid], {
             shell: true,
             detached: false
         });
-
-        console.log("Sim process ", simProcess);
 
         return simProcess;
     }
