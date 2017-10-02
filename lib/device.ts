@@ -7,11 +7,15 @@ export interface IDevice {
   status?: string,
   startedAt?: number,
   procPid?: number,
-  apiLevel?: string
+  apiLevel?: string,
+  info?: string,
+  config?: string
 }
 
 export class Device implements IDevice {
   private _startedAt?: number;
+  private _info?: string;
+  private _config?: string;
 
   constructor(private _name: string, private _apiLevel: string, private _type: string, private _token: string, private _status: string, private _procPid?) {
     this._startedAt = -1;
@@ -71,6 +75,22 @@ export class Device implements IDevice {
 
   set startedAt(startedAt) {
     this._startedAt = startedAt;
+  }
+
+  get info() {
+    return this._info;
+  }
+
+  set info(info) {
+    this._info = info;
+  }
+
+  get config() {
+    return this._config;
+  }
+
+  set config(config) {
+    this._config = config;
   }
 
   public toJson() {
