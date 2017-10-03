@@ -7,9 +7,8 @@ export declare class IOSManager {
     private static BOOTED;
     private static SHUTDOWN;
     private static OSASCRIPT_QUIT_SIMULATOR_COMMAND;
-    private static SIMULATOR;
     private static IOS_DEVICE;
-    static getAllDevices(): Map<string, Device>;
+    static getAllDevices(): Map<string, Array<IDevice>>;
     static startSimulator(simulator: IDevice): Promise<IDevice>;
     static killAll(): void;
     static kill(udid: string): void;
@@ -18,6 +17,6 @@ export declare class IOSManager {
     private static parseSimulator(sim);
     private static waitUntilSimulatorBoot(udid, timeout);
 }
-export declare class Simulator extends Device {
-    constructor(token: string, name: string, status: string, type: any, procPid?: number);
+export declare class IOSDevice extends Device {
+    constructor(token: string, name: string, status: "free" | "busy" | "shutdown" | "booted", type: "simulator" | "device", procPid?: number);
 }

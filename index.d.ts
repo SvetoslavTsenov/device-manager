@@ -1,13 +1,15 @@
 import { IDevice } from "./lib/device";
-export { AndroidManager, Emulator } from "./lib/android-manager";
-export { IOSManager, Simulator } from "./lib/ios-manager";
+export { AndroidManager, AndroidDevice } from "./lib/android-manager";
+export { IOSManager, IOSDevice } from "./lib/ios-manager";
 export { IDevice, Device } from "./lib/device";
-export { Status } from "./lib/status";
-export { Platform } from "./lib/platform";
-export declare function getAndroidDevices(): void;
-export declare function getIOSDevices(): void;
-export declare function startEmulator(emulator: IDevice, options?: any): void;
-export declare function startSimulator(simulator: IDevice, options?: any): void;
+export { DeviceManager } from "./lib/device-manager";
+export { Platform, DeviceType, Status } from "./lib/enums";
+export declare function getAndroidDevices(): Promise<void>;
+export declare function getIOSDevices(): Promise<void>;
+export declare function getAllDevices(platform: "android" | "ios"): Promise<void>;
+export declare function startEmulator(emulator: IDevice, options?: any): Promise<void>;
+export declare function startSimulator(simulator: IDevice, options?: any): Promise<void>;
+export declare function startDevice(device: IDevice, options?: any): Promise<void>;
 /**
  * Still not impleneted
  */
@@ -18,8 +20,4 @@ export declare function killSimulator(simulator: IDevice): void;
 /**
  * Still not implemented
  */
-export declare function restartAndoidDevice(): void;
-/**
- * Still not implemented
- */
-export declare function restartIOSDevice(): void;
+export declare function restartDevice(device: IDevice): void;

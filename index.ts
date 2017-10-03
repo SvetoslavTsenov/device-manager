@@ -1,28 +1,37 @@
-import { AndroidManager, Emulator } from "./lib/android-manager";
-import { IOSManager, Simulator } from "./lib/ios-manager";
-import { IDevice } from "./lib/device";
-import { Platform } from "./lib/platform"
+import { AndroidManager, AndroidDevice } from "./lib/android-manager";
+import { IOSManager, IOSDevice } from "./lib/ios-manager";
+import { Device, IDevice } from "./lib/device";
+import { DeviceManager } from "./lib/device-manager";
+import { Platform, DeviceType, Status } from "./lib/enums";
 
-export { AndroidManager, Emulator } from "./lib/android-manager";
-export { IOSManager, Simulator } from "./lib/ios-manager";
+export { AndroidManager, AndroidDevice } from "./lib/android-manager";
+export { IOSManager, IOSDevice } from "./lib/ios-manager";
 export { IDevice, Device } from "./lib/device";
-export { Status } from "./lib/status";
-export { Platform } from "./lib/platform";
+export { DeviceManager } from "./lib/device-manager";
+export { Platform, DeviceType, Status } from "./lib/enums";
 
-export function getAndroidDevices() {
-    AndroidManager.getAllDevices();
+export async function getAndroidDevices() {
+    await AndroidManager.getAllDevices();
 }
 
-export function getIOSDevices() {
-    IOSManager.getAllDevices();
+export async function getIOSDevices() {
+    await IOSManager.getAllDevices();
 }
 
-export function startEmulator(emulator: IDevice, options?) {
-    AndroidManager.startEmulator(emulator, options);
+export async function getAllDevices(platform: "android" | "ios") {
+    await DeviceManager.getAllDevices(platform);
 }
 
-export function startSimulator(simulator: IDevice, options?) {
-    IOSManager.startSimulator(simulator);
+export async function startEmulator(emulator: IDevice, options?) {
+    await AndroidManager.startEmulator(emulator, options);
+}
+
+export async function startSimulator(simulator: IDevice, options?) {
+    await IOSManager.startSimulator(simulator);
+}
+
+export async function startDevice(device: IDevice, options?) {
+    await DeviceManager.startDevice(device, options);
 }
 
 /**
@@ -47,13 +56,10 @@ export function killSimulator(simulator: IDevice) {
 /**
  * Still not implemented
  */
-export function restartAndoidDevice() {
-    //AndroidManager.restartDevice();
-}
-
-/**
- * Still not implemented
- */
-export function restartIOSDevice() {
-    //IOSManager.restartDevice();
+export function restartDevice(device: IDevice) {
+    if (device.platform === Platform.ANDROID || device.type === DeviceType.DEVICE) {
+        //AndroidManager.restartDevice();
+    }else{
+        //IOSManager.restartDevice();
+    }
 }

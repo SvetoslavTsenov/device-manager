@@ -7,7 +7,7 @@ export declare class AndroidManager {
     private static AVD_MANAGER;
     private static LIST_AVDS;
     private static _emulatorIds;
-    static getAllDevices(): Map<string, IDevice>;
+    static getAllDevices(): Map<string, IDevice[]>;
     static startEmulator(emulator: IDevice, options?: any): Promise<IDevice>;
     /**
      * Implement kill process
@@ -15,7 +15,7 @@ export declare class AndroidManager {
      */
     static kill(emulator: IDevice): void;
     /**
-     * Still not implemented
+     * Not compatible with windows
      */
     static killAll(): void;
     private static waitUntilEmulatorBoot(deviceId, timeOut);
@@ -26,6 +26,6 @@ export declare class AndroidManager {
     private static parseEmulators();
     private static parseAvdAsEmulator(args);
 }
-export declare class Emulator extends Device {
-    constructor(name: string, apiLevel: any, type: any, token?: string, status?: string, procPid?: number);
+export declare class AndroidDevice extends Device {
+    constructor(name: string, apiLevel: any, type: "emulator" | "device", token?: string, status?: "free" | "busy" | "shutdown" | "booted", procPid?: number);
 }

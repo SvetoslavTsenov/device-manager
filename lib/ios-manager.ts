@@ -1,8 +1,7 @@
 import * as child_process from "child_process";
 import { waitForOutput, executeCommand } from "./utils";
-import { Status } from "./status";
 import { IDevice, Device } from "./device";
-import { Platform } from "./platform";
+import { Platform, DeviceType, Status } from "./enums";
 
 export class IOSManager {
 
@@ -13,10 +12,9 @@ export class IOSManager {
     private static BOOTED = "Booted";
     private static SHUTDOWN = "Shutdown";
     private static OSASCRIPT_QUIT_SIMULATOR_COMMAND = "osascript -e 'tell application \"Simulator\" to quit'";
-    private static SIMULATOR = Platform.SIMULATOR;
     private static IOS_DEVICE = "ios-device";
 
-    public static getAllDevices() {
+    public static getAllDevices(): Map<string, Array<IDevice>> {
         return IOSManager.findSimulatorByParameter();
     }
 
@@ -28,8 +26,8 @@ export class IOSManager {
         let responce: boolean = await waitForOutput(process, /Waiting for device to boot/, new RegExp("Failed to load", "i"), 180000);
         if (responce === true) {
             IOSManager.waitUntilSimulatorBoot(udid, 180000);
-            simulator.type = IOSManager.SIMULATOR;
-            simulator.status = Status.FREE;
+            simulator.type = DeviceType.SIMULATOR;
+            simulator.status = "free";
             simulator.procPid = process.pid;
             simulator.startedAt = Date.now();
             console.log(`Launched simulator with name: ${simulator.name}; udid: ${simulator.token}; status: ${simulator.status}`);
@@ -64,7 +62,7 @@ export class IOSManager {
 
     private static findSimulatorByParameter(...args) {
         const simulators = executeCommand(IOSManager.XCRUNLISTDEVICES_COMMAND).split("\n");
-        const devices: Map<string, Device> = new Map<string, Device>();
+        const devicesByNames: Map<string, Array<IDevice>> = new Map<string, Array<IDevice>>();
 
         simulators.forEach((sim) => {
             let shouldAdd = true;
@@ -79,12 +77,17 @@ export class IOSManager {
             if (shouldAdd) {
                 let result = IOSManager.parseSimulator(sim);
                 if (result) {
-                    devices.set(result.name, result);
+                    if (!devicesByNames.has(result.name)) {
+                        devicesByNames.set(result.name, new Array<Device>());
+                        devicesByNames.get(result.name).push(result);
+                    } else {
+                        devicesByNames.get(result.name).push(result);
+                    }
                 }
             }
         });
 
-        return devices;
+        return devicesByNames;
     }
 
     private static parseSimulator(sim) {
@@ -94,12 +97,12 @@ export class IOSManager {
         }
         const name = parts[0].trim();
         const udid = parts[1].replace(")", "").trim();
-        let args = "";
+        let args: "booted" | "shutdown";
         if (parts.length === 3) {
-            args = parts[2].replace(")", "").trim().toLowerCase();
+            args = parts[2].replace(")", "").trim().toLowerCase() === "booted" ? "booted" : "shutdown";
         }
 
-        return new Simulator(udid, name, args, IOSManager.SIMULATOR);
+        return new IOSDevice(udid, name, args, DeviceType.SIMULATOR);
     }
 
     // Should find a better way
@@ -124,8 +127,8 @@ export class IOSManager {
     }
 }
 
-export class Simulator extends Device {
-    constructor(token: string, name: string, status: string, type, procPid?: number) {
-        super(name, undefined, type, token, status, procPid);
+export class IOSDevice extends Device {
+    constructor(token: string, name: string, status: "free" | "busy" | "shutdown" | "booted", type: "simulator" | "device", procPid?: number) {
+        super(name, undefined, type, Platform.IOS, token, status, procPid);
     }
 }

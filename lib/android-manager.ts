@@ -2,12 +2,11 @@ import * as child_process from "child_process";
 import { waitForOutput, executeCommand } from "./utils";
 import { resolve } from "path";
 import { IDevice, Device } from "./device";
-import { Status } from "./status";
-import { Platform } from "./platform";
+import { Platform, DeviceType, Status } from "./enums";
 
 export class AndroidManager {
     private static ANDROID_HOME = process.env["ANDROID_HOME"];
-    private static EMULATOR = resolve(AndroidManager.ANDROID_HOME, Platform.EMULATOR, Platform.EMULATOR);
+    private static EMULATOR = resolve(AndroidManager.ANDROID_HOME, DeviceType.EMULATOR, DeviceType.EMULATOR);
     private static ADB = resolve(AndroidManager.ANDROID_HOME, "platform-tools", "adb");
     private static LIST_DEVICES_COMMAND = AndroidManager.ADB + " devices";
     private static AVD_MANAGER = resolve(AndroidManager.ANDROID_HOME, "tools", "bin", "avdmanager");
@@ -15,6 +14,9 @@ export class AndroidManager {
     private static _emulatorIds: Map<string, string> = new Map();
 
     public static getAllDevices() {
+        if (AndroidManager._emulatorIds.size === 0) {
+            AndroidManager.loadEmulatorsIds();
+        }
         const emulators = AndroidManager.parseEmulators();
 
         return emulators;
@@ -24,13 +26,10 @@ export class AndroidManager {
         if (emulator.token === undefined) {
             emulator.token = AndroidManager.emulatorId(emulator.apiLevel) || "5554";
         }
-        const response = await AndroidManager.startEmulatorProcess(emulator, options);
+        emulator = await AndroidManager.startEmulatorProcess(emulator, options);
+        const result = await AndroidManager.waitUntilEmulatorBoot(emulator.token, parseInt(process.env.BOOT_ANDROID_EMULATOR_MAX_TIME) || 180000) === true ? Status.FREE : Status.SHUTDOWN;
 
-        if (!response.response) {
-            emulator.status = AndroidManager.waitUntilEmulatorBoot(emulator.token, 180000) === true ? Status.FREE : Status.SHUTDOWN;
-        }
-
-        if (emulator.status === Status.FREE) {
+        if (result === Status.FREE) {
             emulator.startedAt = Date.now();
         }
 
@@ -42,24 +41,29 @@ export class AndroidManager {
      * @param emulator 
      */
     public static kill(emulator: IDevice) {
-        executeCommand(AndroidManager.ADB + " -s " + Platform.EMULATOR + "-" + emulator.token + " emu kill");
-        //kill process
-        if (emulator.procPid) {
-
+        if (emulator.type === DeviceType.EMULATOR) {
+            executeCommand(AndroidManager.ADB + " -s " + DeviceType.EMULATOR + "-" + emulator.token + " emu kill");
+            //kill process
+            if (emulator.procPid) {
+                try {
+                    process.kill(emulator.procPid, "SIGINT");
+                    process.kill(emulator.procPid, "SIGINT");
+                } catch (error) {
+                }
+            }
         }
     }
 
     /**
-     * Still not implemented
+     * Not compatible with windows
      */
     public static killAll() {
         const log = executeCommand("killall qemu-system-i386 ");
         const OSASCRIPT_QUIT_QEMU_PROCESS_COMMAND = "osascript -e 'tell application \"qemu-system-i386\" to quit'";
-
         executeCommand(OSASCRIPT_QUIT_QEMU_PROCESS_COMMAND);
     }
 
-    private static waitUntilEmulatorBoot(deviceId, timeOut: number) {
+    private static waitUntilEmulatorBoot(deviceId, timeOut: number): boolean {
         const startTime = new Date().getTime();
         let currentTime = new Date().getTime();
         let found = false;
@@ -68,7 +72,7 @@ export class AndroidManager {
 
         while ((currentTime - startTime) < timeOut * 1000 && !found) {
             currentTime = new Date().getTime();
-            found = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + deviceId);
+            found = AndroidManager.checkIfEmulatorIsRunning(DeviceType.EMULATOR + "-" + deviceId);
         }
 
         if (!found) {
@@ -96,16 +100,14 @@ export class AndroidManager {
 
     private static async startEmulatorProcess(emulator, options) {
         const process = child_process.spawn(AndroidManager.EMULATOR,
-            ["-avd ", emulator.name, "-port ", emulator.token, options || " -wipe-data"], {
+            [" -avd ", emulator.name, "-port ", emulator.token, options || " -wipe-data"], {
                 shell: true,
                 detached: false
             });
 
-        let response = AndroidManager.checkIfEmulatorIsRunning(Platform.EMULATOR + "-" + emulator.token);
-
         emulator.procPid = process.pid;
 
-        return { response: response, process: emulator };
+        return emulator;
     }
 
     private static loadEmulatorsIds() {
@@ -123,12 +125,15 @@ export class AndroidManager {
 
     private static parseEmulators() {
         let devices = executeCommand(AndroidManager.LIST_DEVICES_COMMAND).split("\n");
-        const emulators: Map<string, IDevice> = new Map<string, IDevice>();
+        const emulators: Map<string, Array<IDevice>> = new Map<string, Array<IDevice>>();
         executeCommand(AndroidManager.LIST_AVDS).split("-----").forEach(dev => {
             if (dev.toLowerCase().includes("available android")) {
             } else {
                 const emu = AndroidManager.parseAvdAsEmulator(dev);
-                emulators.set(emu.name, emu);
+                if (!emulators.has(emu.name)) {
+                    emulators.set(emu.name, new Array<IDevice>());
+                    emulators.get(emu.name).push(emu);
+                }
             }
         });
 
@@ -136,13 +141,13 @@ export class AndroidManager {
             const numberAsString = dev.replace(/\D+/ig, '');
             try {
                 const port = parseInt(numberAsString);
-                const avdInfo = executeCommand("(sleep 1; echo avd name) | telnet localhost " + port).trim();
+                const avdInfo = executeCommand("(sleep 2; echo avd name) | telnet localhost " + port).trim();
 
                 if (port !== NaN && avdInfo !== "" && avdInfo.toLowerCase().includes("ok") && avdInfo.toLowerCase().includes("connected to localhost")) {
                     for (let key of emulators.keys()) {
                         if (avdInfo.includes(key)) {
-                            emulators.get(key).status = Status.FREE;
-                            emulators.get(key).token = numberAsString;
+                            emulators.get(key)[0].status = "free";
+                            emulators.get(key)[0].token = numberAsString;
                         }
                     }
                 }
@@ -153,7 +158,7 @@ export class AndroidManager {
         return emulators;
     }
 
-    private static parseAvdAsEmulator(args): Device {
+    private static parseAvdAsEmulator(args): IDevice {
         let name = "";
         let apiLevel = 6.0;
 
@@ -166,14 +171,14 @@ export class AndroidManager {
             }
         });
 
-        const emulator = new Emulator(name, apiLevel, Platform.EMULATOR, undefined, Status.SHUTDOWN);
+        const emulator = new AndroidDevice(name, apiLevel, DeviceType.EMULATOR, undefined, "shutdown");
 
         return emulator;
     }
 }
 
-export class Emulator extends Device {
-    constructor(name: string, apiLevel, type, token?: string, status?: string, procPid?: number) {
-        super(name, apiLevel, type, token, status, procPid);
+export class AndroidDevice extends Device {
+    constructor(name: string, apiLevel, type: "emulator" | "device", token?: string, status?: "free" | "busy" | "shutdown" | "booted", procPid?: number) {
+        super(name, apiLevel, type, Platform.ANDROID, token, status, procPid);
     }
 }
